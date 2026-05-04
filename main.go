@@ -22,8 +22,8 @@ type TelegramAuthContext struct {
 }
 
 type EventInput struct {
-	ChatID          *int64  `json:"chat_id" binding:"required,gt=0"`
-	CreatedByUserID *int64  `json:"created_by_user_id" binding:"required,gt=0"`
+	ChatID          *int64  `json:"chat_id"`
+	CreatedByUserID *int64  `json:"created_by_user_id"`
 	TargetUserID    *int64  `json:"target_user_id"`
 	Type            string  `json:"type" binding:"required,oneof=birthday reminder custom"`
 	Title           string  `json:"title" binding:"required"`

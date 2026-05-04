@@ -9,15 +9,16 @@ import (
 )
 
 type Env struct {
-	AppEnv     string
-	Port       string
-	GinMode    string
-	DBSchema   string
-	DBName     string
-	DBUser     string
-	DBPassword string
-	DBHost     string
-	DBPort     string
+	AppEnv             string
+	Port               string
+	GinMode            string
+	CORSAllowedOrigins []string
+	DBSchema           string
+	DBName             string
+	DBUser             string
+	DBPassword         string
+	DBHost             string
+	DBPort             string
 }
 
 var Current Env
@@ -36,15 +37,16 @@ func Load() (Env, error) {
 	_ = godotenv.Load(".env")
 
 	env := Env{
-		AppEnv:     getEnvOrDefault("APP_ENV", "development"),
-		Port:       getEnvOrDefault("PORT", "8080"),
-		GinMode:    getEnvOrDefault("GIN_MODE", "debug"),
-		DBSchema:   getEnvOrDefault("DB_SCHEMA", "postgres"),
-		DBName:     getEnvOrDefault("DB_NAME", ""),
-		DBUser:     getEnvOrDefault("DB_USER", "postgres"),
-		DBPassword: getEnvOrDefault("DB_PASSWORD", ""),
-		DBHost:     getEnvOrDefault("DB_HOST", "localhost"),
-		DBPort:     getEnvOrDefault("DB_PORT", "5432"),
+		AppEnv:             getEnvOrDefault("APP_ENV", "development"),
+		Port:               getEnvOrDefault("PORT", "8080"),
+		GinMode:            getEnvOrDefault("GIN_MODE", "debug"),
+		CORSAllowedOrigins: splitCSV(getEnvOrDefault("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173,https://telegram.william-vegas.com")),
+		DBSchema:           getEnvOrDefault("DB_SCHEMA", "postgres"),
+		DBName:             getEnvOrDefault("DB_NAME", ""),
+		DBUser:             getEnvOrDefault("DB_USER", "postgres"),
+		DBPassword:         getEnvOrDefault("DB_PASSWORD", ""),
+		DBHost:             getEnvOrDefault("DB_HOST", "localhost"),
+		DBPort:             getEnvOrDefault("DB_PORT", "5432"),
 	}
 
 	if strings.TrimSpace(env.Port) == "" {
@@ -65,4 +67,18 @@ func getEnvOrDefault(key, fallback string) string {
 	}
 
 	return value
+}
+
+func splitCSV(value string) []string {
+	items := strings.Split(value, ",")
+	result := make([]string, 0, len(items))
+
+	for _, item := range items {
+		trimmed := strings.TrimSpace(item)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+
+	return result
 }

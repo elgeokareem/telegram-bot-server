@@ -7,7 +7,7 @@ import (
 )
 
 func validateEventRequest(input CreateEventRequest) error {
-	if input.Event.ChatID == nil || *input.Event.ChatID <= 0 {
+	if input.Event.ChatID == nil || *input.Event.ChatID == 0 {
 		return fmt.Errorf("event.chat_id must be provided by verified Telegram context")
 	}
 

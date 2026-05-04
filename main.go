@@ -74,7 +74,7 @@ func main() {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = env.CORSAllowedOrigins
 	corsConfig.AllowMethods = []string{"GET", "POST", "OPTIONS"}
-	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Telegram-Init-Data"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Telegram-Init-Data", "X-WebApp-Context"}
 	router.Use(cors.New(corsConfig))
 
 	router.GET("/health", func(c *gin.Context) {
@@ -100,6 +100,9 @@ func main() {
 		}
 
 		authContext, err := validateTelegramInitData(c.GetHeader("X-Telegram-Init-Data"), env.TelegramBotToken)
+		if err != nil {
+			authContext, err = validateWebAppContextToken(c.GetHeader("X-WebApp-Context"), env.WebAppContextSecret)
+		}
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid Telegram WebApp context"})
 			return

@@ -16,6 +16,11 @@ type CreateEventRequest struct {
 	Reminders  []ReminderInput `json:"reminders" binding:"required,min=1,dive"`
 }
 
+type TelegramAuthContext struct {
+	ChatID int64
+	UserID int64
+}
+
 type EventInput struct {
 	ChatID          *int64  `json:"chat_id" binding:"required,gt=0"`
 	CreatedByUserID *int64  `json:"created_by_user_id" binding:"required,gt=0"`
@@ -69,13 +74,16 @@ func main() {
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowOrigins = env.CORSAllowedOrigins
 	corsConfig.AllowMethods = []string{"GET", "POST", "OPTIONS"}
-	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Telegram-Init-Data"}
 	router.Use(cors.New(corsConfig))
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
 		})
+	})
+	router.HEAD("/health", func(c *gin.Context) {
+		c.Status(http.StatusOK)
 	})
 
 	router.GET("/api/v1/events", func(c *gin.Context) {
@@ -90,6 +98,15 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid event payload", "details": err.Error()})
 			return
 		}
+
+		authContext, err := validateTelegramInitData(c.GetHeader("X-Telegram-Init-Data"), env.TelegramBotToken)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid Telegram WebApp context"})
+			return
+		}
+
+		input.Event.ChatID = &authContext.ChatID
+		input.Event.CreatedByUserID = &authContext.UserID
 
 		if err := validateEventRequest(input); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

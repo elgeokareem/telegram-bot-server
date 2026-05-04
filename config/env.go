@@ -12,6 +12,7 @@ type Env struct {
 	AppEnv             string
 	Port               string
 	GinMode            string
+	TelegramBotToken   string
 	CORSAllowedOrigins []string
 	DBSchema           string
 	DBName             string
@@ -40,6 +41,7 @@ func Load() (Env, error) {
 		AppEnv:             getEnvOrDefault("APP_ENV", "development"),
 		Port:               getEnvOrDefault("PORT", "8080"),
 		GinMode:            getEnvOrDefault("GIN_MODE", "debug"),
+		TelegramBotToken:   strings.TrimSpace(os.Getenv("TELEGRAM_BOT_TOKEN")),
 		CORSAllowedOrigins: splitCSV(getEnvOrDefault("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173,https://telegram.william-vegas.com")),
 		DBSchema:           getEnvOrDefault("DB_SCHEMA", "postgres"),
 		DBName:             getEnvOrDefault("DB_NAME", ""),
@@ -55,6 +57,10 @@ func Load() (Env, error) {
 
 	if strings.TrimSpace(env.DBName) == "" {
 		return env, fmt.Errorf("missing required environment variable: DB_NAME")
+	}
+
+	if strings.TrimSpace(env.TelegramBotToken) == "" {
+		return env, fmt.Errorf("missing required environment variable: TELEGRAM_BOT_TOKEN")
 	}
 
 	return env, nil
